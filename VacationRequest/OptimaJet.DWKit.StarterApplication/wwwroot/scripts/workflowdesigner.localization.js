@@ -1,29 +1,50 @@
 ﻿var WorkflowDesignerConstants = {
-    SelectColor: '#CCCC00',
-    ActivityColor: '#F2F3F5',
-    ActivityInitialColor: '#CBF4B2',
-    ActivityFinalColor: '#DDEAFA',
-    ActivityCurrentColor: '#FFCC99',
+    ActivityColor: '#ECF0F1',
+    ActivityTextColor: '#2D3436',
+    ActivityInitialColor: '#27AE60',
+    ActivityInitialTextColor: '#FFFFFF',
+    ActivityFinalColor: '#2980B9',
+    ActivityFinalTextColor: '#FFFFFF',
+    ActivityShape: '#CECECE',
+    SelectColor: '#F39C12',
+    SelectTextColor: '#FFFFFF',
+    SelectSubProcessColor: '#e3b015',
+    SelectSubProcessTextColor: '#FFFFFF',
+    ButtonActive: "#D4D8D9",
+    BarColor: "#EDF1F2",
+    BarSeparatorColor: "#D9DEE0",
     DeleteConfirm: 'Are you sure you want to delete selected item(s)?',
+    DeleteConfirmCurrent: 'Are you sure you want to delete this item?',
     FieldIsRequired: 'Field is required!',
     FieldMustBeUnique: 'Field must be unique!',
     ButtonTextDelete: 'Delete',
     ButtonTextCreate: 'Create',
     ButtonTextSave: 'Save',
+    ButtonTextYes: 'Yes',
+    ButtonTextNo: 'No',
     ButtonTextCancel: 'Cancel',
     ButtonTextClose: 'Close',
+    ButtonTextUndo: 'Undo',
+    ButtonTextRedo: 'Redo',
     SaveConfirm: 'Save changes?',
+    CloseWithoutSaving: 'Close without saving?',
+
+    TransitionAuto: 'Auto',
+
     DialogConfirmText: "Question",
+    None: "None",
+    Warning: "Warning",
 
     InfoBlockLabel:{
-        Activity: 'Activity: ',
-        Transition: 'Transition: ',
-        Command: 'Command: ',
+        Activity: 'Activities: ',
+        Transition: 'Transitions: ',
+        Command: 'Commands: ',
     },
 
     ActivityNamePrefix: 'Activity_',
     ActivityFormLabel: {
         Title: 'Activity',
+        TitleForInline: 'Activity Inline',
         Name: 'Name',
         State: 'State',
         IsInitial: 'Initial',
@@ -36,8 +57,11 @@
         ImpAction: 'Action',
         ImpActionParameter: 'Action parameter',
         AlwaysConditionShouldBeSingle: 'Always condition should be single',
-        OtherwiseConditionShouldBeSingle: 'Otherwise condition should be single'
-        
+        OtherwiseConditionShouldBeSingle: 'Otherwise condition should be single',
+        Annotations: 'Annotations',
+        AnnotationName: 'Name',
+        AnnotationValue: 'Value',
+        Scheme: "Inline scheme"
     },
 
     TransitionFormLabel: {
@@ -65,8 +89,13 @@
         ConditionsListShouldNotBeEmpty: 'Conditions list should not be empty',
         IsFork: 'Is fork',
         MergeViaSetState: 'Merge subprocess via set state',
-        DisableParentStateControl: 'Disable parent process control'
-
+        DisableParentStateControl: 'Disable parent process control',
+        ShowConcatParameters : "Show concatenation",
+        HideConcatParameters : "Hide concatenation",
+        Annotations: 'Annotations',
+        AnnotationName: 'Name',
+        AnnotationValue: 'Value',
+        InlinedFinalActivityName: "Inlined Final Activity Name"
     },
     LocalizationFormLabel: {
         Title: 'Localization',
@@ -114,32 +143,77 @@
         InputParametersDefaultValue: 'Default'
     },
 
-    AdditionalParamsFormLabel: {
+    ProcessInfoFormLabel: {
         Title: 'Additional Parameters',
         IsObsolete: "IsObsolete",
         DefiningParameters: 'Defining parameters',
         ProcessParameters: 'Process parameters',
-        ProcessParametersName: 'Name',
-        ProcessParametersValue: 'Value'
+        SystemParametersTabName: 'System Parameters',
+        ProcessParametersTabName: 'Process Parameters',
+        HistoryTabName: 'History',
+        TimersTabName: 'Timers',
+        HistoryTabFromLabel: 'From',
+        HistoryTabFromStateLabel: 'From State',
+        HistoryTabToLabel: 'To',
+        HistoryTabToStateLabel: 'To State',
+        HistoryTabExecutorIdLabel: 'Executor Id',
+        HistoryTabActorIdLabel: 'Actor Id',
+        HistoryTabTimeLabel: 'Time',
+        HistoryTabTriggerNameLabel: 'Trigger Name',
+        HistoryTabTransitionClassifierNameLabel: '',
+        ParametersNameLabel: 'Name',
+        ParametersValueLabel: 'Value',
+        TimersTabNameLabel: 'Name',
+        TimersTabValueLabel: 'Value',
+        RootProcess: "Root Process"
     },
-     CodeActionsFormLabel: {
+
+    CodeActionsFormLabel: {
         Title: 'Code actions',
         Name: 'Name',
         ActionCode: 'Action code',
         IsGlobal: 'Is global',
         IsAsync: 'Async',
-        Type: 'Type'
+        Type: 'Type',
+        GlobalDeleteMessage: "You've deleted the Global CodeAction.<br/><b>Other schemes won't be able to call this CodeAction!</b>",
+        UnGlobalMessage: "You've changed the state of the global flag.<br/>There will be created a Local CodeAction based on this Global CodeAction after saving this scheme.",
+        EditParameters: "Edit parameters",
+        Parameters: "Parameters" ,
+        Text: "Text",
+        Number: "Number",
+        Checkbox: "Checkbox",
+        Dropdown: "Dropdown",
+        DateTime: "Date/Time",
+        Values: 'Values',
+        DropdownName: 'Name',
+        DropdownValue: 'Value',
+        DropdownShouldContainValues: 'Dropdown should contain values',
+        IsRequired: 'Required',
+        DefaultValue: 'Default value',
+        Json: 'Json'
+    },
+
+    EditParametersFormlabel: {
+        Title: "Edit parameter values",
+        NumberRequired: "Should be a numeric value",
+        DateShouldBeInISOFormat: "Date/Time parameter should be in ISO8601 format",
+        SwitchToJson: "Switch to JSON editor",
+        SwitchToConstructor: "Switch to parameter values editor",
+        InvalidJson: "JSON object is invalid or does not match the model"
     },
 
     ToolbarLabel: {
         CreateActivity: 'Create activity',
+        CreateInline: 'Create inline (template)',
         CopySelected: 'Copy selected',
         Undo: 'Undo',
         Redo: 'Redo',
         Move: 'Move',
         ZoomIn: 'Zoom In',
         ZoomOut: 'Zoom Out',
-        ZoomPositionDefault: 'Zoom and position default set',
+        ZoomPositionDefault: 'Zoom default',
+        FullScreen: 'Full Screen',
+        Refresh: 'Refresh',
         AutoArrangement: 'Auto arrangement',
         Actors: 'Actors',
         Commands: 'Commands',
@@ -147,10 +221,24 @@
         Localization: 'Localization',
         Timers: 'Timers',
         AdditionalParameters: 'Additional Parameters',
-        CodeActions: 'Code actions'
+        CodeActions: 'Code actions',
+        Info: "Extended info",
+        Delete: "Delete",
+        Clone: "Clone",
+        Settings: "Settings",
+        CreateTransition: "Create a transition",
+        CreateActivityTransition: "Create an activity and a transition",
+        Legend: "Legend",
+        ProcessInfo: "Process Info",
+        Inline: "The scheme can be inlined"
     },
     ErrorActivityIsInitialCountText: "One element must be marked flag Initial",
+    ErrorActivityIsFinalCountText: "This scheme is Inlined. One or more elements must be marked flag Final",
     ErrorReadOnlySaveText: "The Designer in ReadOnly mode, you can't save it.",
+    ErrorInvalidObjectsSaveText: function(objects) {
+        return "Can't save the schema. Those objects are in invalid state: " + objects;
+    },
+    BrokenReferencesDialogText: "This schema contains references to Actions, Conditions or Rules that aren't defined by this schema or current action providers. Do you want to keep them?",
     FormMaxHeight: 700,
     EditCodeSettings: {
         Height: 600,
@@ -169,17 +257,25 @@
         CompileSucceeded: "Compilation succeeded.",
         Success: "Success",
         Error: "Error",
-        OK: "OK"
+        OK: "OK",
+        ShowUsings: "Show usings",
+        HideUsings: "Hide usings",
     },
     EditJSONSettings: {
         Height: 600,
         Width: 1000,
         CodeHeight: 480
     },
-     EditJSONLabel: {
+    EditJSONLabel: {
         Title: "Edit value in JSON",
         CreateEmptyType: "Create",
-        Format: "Format"       
-     },
-    isjava: false
+        Format: "Format"
+    },
+    OverviewMap: {
+        show: true,
+        width: 300,
+        height: 150
+    },
+    UndoDepth: 200,
+    DefaultCulture: 'en-US'
 };

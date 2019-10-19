@@ -1,27 +1,45 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OptimaJet.DWKit.Application;
 using OptimaJet.DWKit.Core;
+using OptimaJet.DWKit.Core.Metadata.CommandForms;
 using OptimaJet.DWKit.Core.View;
 using OptimaJet.Workflow;
-using OptimaJet.Workflow.Core;
 using OptimaJet.Workflow.Core.Runtime;
+using HashHelper = OptimaJet.DWKit.Core.Utils.HashHelper;
 
 namespace OptimaJet.DWKit.StarterApplication.Controllers
 {
+    //[Authorize(IdentityServer4.IdentityServerConstants.LocalApi.PolicyName)]
     [Authorize]
     public class WorkflowController : Controller
     {
+        private IHostingEnvironment _env;
+        private IConfigurationRoot _configuration;
+        public WorkflowController(IHostingEnvironment env)
+        {
+            _env = env;
+            DWKitRuntime.Metadata.SetRootPath(_env.ContentRootPath);
+
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddEnvironmentVariables();
+            _configuration = builder.Build();
+        }
+
         [Route("workflow/designerapi")]
         public IActionResult DesignerAPI()
         {
@@ -49,6 +67,18 @@ namespace OptimaJet.DWKit.StarterApplication.Controllers
                 }
             }
 
+            var operation = pars["operation"].ToLower();
+            if (operation == "save")
+            {
+                if (!CheckAccess())
+                {
+                    return AccessDenied();
+                }
+
+                if (DWKitRuntime.Metadata.BlockMetadataChanges)
+                    return Content("ConfigAPI: Changes are locked!");
+            }
+
             var res = WorkflowInit.Runtime.DesignerAPI(pars, filestream);
 
             if (pars["operation"].ToLower() == "downloadscheme")
@@ -60,11 +90,11 @@ namespace OptimaJet.DWKit.StarterApplication.Controllers
         }
 
         [Route("workflow/get")]
-        public async Task<ActionResult> GetData(string name, string urlFilter)
+        public async Task<ActionResult> GetData(string name, string urlFilter, bool forCopy = false)
         {
             try
             {
-                Guid? entityId;
+                object entityId = null;
                 string filterActionName = null;
                 string idValue = null;
                 var filterItems = new List<ClientFilterItem>();
@@ -88,31 +118,55 @@ namespace OptimaJet.DWKit.StarterApplication.Controllers
                     }
                 }
 
-                if (!string.IsNullOrEmpty(idValue))
+                if (!forCopy)
                 {
-                    entityId = Guid.Parse(idValue);
-                }
-                else
-                {
-                    var data = await DataSource.GetDataForFormAsync(new GetDataRequest(name) {Filter = filterItems, FilterActionName = filterActionName});
-                    entityId = (Guid?) data?.GetId();
+                    if (!string.IsNullOrEmpty(idValue))
+                    {
+                        if (Guid.TryParse(idValue, out Guid parsedGuid))
+                        {
+                            entityId = parsedGuid;
+                        }
+                        else
+                        {
+                            entityId = idValue;
+                        }
+                    }
+                    else if (filterItems.Any() || !string.IsNullOrEmpty(filterActionName))
+                    {
+                        var (entity, _) = await DataSource.GetDataForFormAsync(new GetDataRequest(name)
+                        {
+                            Filter = filterItems,
+                            FilterActionName = filterActionName
+                        }).ConfigureAwait(false);
+                        ;
+
+                        entityId = entity?.GetPrimaryKey();
+                    }
                 }
 
                 var userId = GetUserId();
+                var processId = GetProcessId(entityId, name);
 
-                if (entityId.HasValue && (await WorkflowInit.Runtime.IsProcessExistsAsync(entityId.Value)))
+                if (processId.HasValue && (await WorkflowInit.Runtime.IsProcessExistsAsync(processId.Value).ConfigureAwait(false)))
                 {
-                    var commands = (await WorkflowInit.Runtime.GetAvailableCommandsAsync(entityId.Value, userId.ToString())).Select(c =>
-                        new ClientWorkflowCommand() {Text = c.LocalizedName, Type = (byte) c.Classifier, Value = c.CommandName}).ToList();
-                    var states = (await WorkflowInit.Runtime.GetAvailableStateToSetAsync(entityId.Value)).Select(s =>
-                        new ClientWorkflowState() {Value = s.Name, Text = s.VisibleName}).ToList();
+                    var info = await WorkflowInit.Runtime.GetProcessSchemeAsync(processId.Value);
 
-                    return Json(new ItemSuccessResponse<ClientWorkflowResponse>(new ClientWorkflowResponse() {Commands = commands, States = states}));
+                    var commands = (await WorkflowInit.Runtime.GetAvailableCommandsAsync(processId.Value, userId.ToString()).ConfigureAwait(false))
+                        .Select(c => new ClientWorkflowCommand {Text = c.LocalizedName, Type = (byte) c.Classifier, Value = c.CommandName, Scheme = info.Name}).ToList();
+
+                    var states = (await WorkflowInit.Runtime.GetAvailableStateToSetAsync(processId.Value).ConfigureAwait(false))
+                        .Select(s => new ClientWorkflowState {Value = s.Name, Text = s.VisibleName}).ToList();
+
+                    await new FormFillStrategy().FillFormForCommandsAsync(commands).ConfigureAwait(false);
+
+                    return Json(new ItemSuccessResponse<ClientWorkflowResponse>(new ClientWorkflowResponse() {Commands = commands, States = states, ProcessExists = true}));
                 }
                 else
                 {
-                    var commands = await GetInitialCommands(name, userId);
-                    return Json(new ItemSuccessResponse<ClientWorkflowResponse>(new ClientWorkflowResponse() {Commands = commands, States = new List<ClientWorkflowState>()}));
+                    var commands = await GetInitialCommands(name, userId).ConfigureAwait(false);
+                    await new FormFillStrategy().FillFormForCommandsAsync(commands).ConfigureAwait(false);
+                    return Json(new ItemSuccessResponse<ClientWorkflowResponse>(new ClientWorkflowResponse()
+                        {Commands = commands, States = new List<ClientWorkflowState>(), ProcessExists = false}));
                 }
             }
             catch (Exception e)
@@ -121,37 +175,58 @@ namespace OptimaJet.DWKit.StarterApplication.Controllers
             }
         }
 
-        private static Guid GetUserId()
-        {
-            return DWKitRuntime.Security.CurrentUser.ImpersonatedUserId.HasValue
-                ? DWKitRuntime.Security.CurrentUser.ImpersonatedUserId.Value
-                : DWKitRuntime.Security.CurrentUser.Id;
-        }
+
 
         [Route("workflow/execute")]
         [HttpPost]
-        public async Task<ActionResult> ExecuteCommand(string name, string id, string command)
+        public async Task<ActionResult> ExecuteCommand(string name, string id, string command, string data)
         {
             try
             {
-                var idGuid = Guid.Parse(id);
+                var processId = GetProcessIdFromString(id,name);
+
                 var userId = GetUserId();
 
-                if (!await WorkflowInit.Runtime.IsProcessExistsAsync(idGuid))
+                if (!await WorkflowInit.Runtime.IsProcessExistsAsync(processId))
                 {
-                    var wfcommand = (await GetInitialCommands(name, userId)).FirstOrDefault(c => c.Value.Equals(command));
-                    if (wfcommand == null)
+                    var wfCommand = (await GetInitialCommands(name, userId)).FirstOrDefault(c => c.Value.Equals(command));
+                    if (wfCommand == null)
                         return Json(new FailResponse("Command not found."));
-                    await WorkflowInit.Runtime.CreateInstanceAsync(new CreateInstanceParams(wfcommand.Scheme, idGuid)
+                    await WorkflowInit.Runtime.CreateInstanceAsync(new CreateInstanceParams(wfCommand.Scheme, processId)
                     {
                         IdentityId = userId.ToString()
                     });
                 }
 
-                var commandObject = (await WorkflowInit.Runtime.GetAvailableCommandsAsync(idGuid, userId.ToString())).FirstOrDefault(c => c.CommandName.Equals(command));
-                
+                var commandObject = (await WorkflowInit.Runtime.GetAvailableCommandsAsync(processId, userId.ToString())).FirstOrDefault(c => c.CommandName.Equals(command));
+
                 if (commandObject == null)
                     return Json(new FailResponse("Command not found."));
+
+                var instance = await WorkflowInit.Runtime.GetProcessInstanceAndFillProcessParametersAsync(processId);
+
+                var scheme = WorkflowInit.Runtime.Builder.GetProcessScheme(instance.SchemeCode);
+
+                if (!string.IsNullOrWhiteSpace(data))
+                {
+                    var json = JObject.Parse(data);
+
+                    foreach (var t in json.Properties())
+                    {
+                        if (t.Name == "__id") continue;
+
+                        var parameter = scheme.Parameters.FirstOrDefault(p => p.Name == t.Name);
+
+                        if (parameter != null)
+                        {
+                            commandObject.SetParameter(t.Name, t.ToObject(parameter.Type));
+                        }
+                        else
+                        {
+                            commandObject.SetParameter(t.Name, t.Value.ToObject<object>());
+                        }
+                    }
+                }
 
                 await WorkflowInit.Runtime.ExecuteCommandAsync(commandObject, userId.ToString(), userId.ToString());
 
@@ -163,22 +238,22 @@ namespace OptimaJet.DWKit.StarterApplication.Controllers
                 return Json(new FailResponse(e));
             }
         }
-        
+
         [Route("workflow/set")]
         [HttpPost]
         public async Task<ActionResult> SetState(string name, string id, string state)
         {
             try
             {
-                var idGuid = Guid.Parse(id);
+                var processId = GetProcessIdFromString(id,name);
                 var userId = GetUserId();
 
-                if (!await WorkflowInit.Runtime.IsProcessExistsAsync(idGuid))
+                if (!await WorkflowInit.Runtime.IsProcessExistsAsync(processId))
                 {
                     return Json(new FailResponse($"Process with id={id} is not found."));
                 }
 
-                await WorkflowInit.Runtime.SetStateAsync(idGuid, userId.ToString(), userId.ToString(),state);
+                await WorkflowInit.Runtime.SetStateAsync(processId, userId.ToString(), userId.ToString(), state);
 
                 return Json(new SuccessResponse());
             }
@@ -189,11 +264,37 @@ namespace OptimaJet.DWKit.StarterApplication.Controllers
             }
         }
 
+        private static Guid GetProcessIdFromString(string id, string formName)
+        {
+            if (Guid.TryParse(id, out Guid idGuid))
+                return idGuid;
+
+            return HashHelper.FromString($"{formName}_{id}");
+        }
+
+        private static Guid? GetProcessId(object entityId, string formName)
+        {
+            if (entityId == null)
+                return null;
+
+            if (entityId is Guid entityIdAsGuid)
+                return entityIdAsGuid;
+
+            return HashHelper.FromString($"{formName}_{entityId}");
+        }
+
+        private static Guid GetUserId()
+        {
+            return DWKitRuntime.Security.CurrentUser.ImpersonatedUserId.HasValue
+                ? DWKitRuntime.Security.CurrentUser.ImpersonatedUserId.Value
+                : DWKitRuntime.Security.CurrentUser.Id;
+        }
+
         private static bool NotNullOrEmpty(string urlFilter)
         {
             return !string.IsNullOrEmpty(urlFilter) && !urlFilter.Equals("null", StringComparison.OrdinalIgnoreCase);
         }
-        
+
         private async Task<List<ClientWorkflowCommand>> GetInitialCommands(string name, Guid userId)
         {
             List<string> schemeNames = DWKitRuntime.Metadata.GetWorkflowByForm(name);
@@ -207,7 +308,7 @@ namespace OptimaJet.DWKit.StarterApplication.Controllers
                         new ClientWorkflowCommand()
                         {
                             Text = c.LocalizedName,
-                            Type = (byte) c.Classifier,
+                            Type = (byte)c.Classifier,
                             Value = c.CommandName,
                             Scheme = schemeName
                         }).ToList();
@@ -216,6 +317,20 @@ namespace OptimaJet.DWKit.StarterApplication.Controllers
                 }
             }
             return commands;
+        }
+
+        private bool CheckAccess()
+        {
+            var role = _configuration["DWKit:AdminRole"];
+            if (string.IsNullOrEmpty(role) || role == "*")
+                return true;
+
+            return (DWKitRuntime.Security.CurrentUser != null && DWKitRuntime.Security.CurrentUser.IsInRole(role));
+        }
+
+        private ActionResult AccessDenied()
+        {
+            return Content("It's just for admins!");
         }
     }
 }

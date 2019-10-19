@@ -1,3 +1,6 @@
+.dwkit-formadmin-container{
+    min-width: 800px;
+}
 /* Header */
 .dwkit-formadmin-header-logo{
     height: 51px;
@@ -6,7 +9,7 @@
 }
 
 .dwkit-formadmin-header{
-    height: 100px;
+    height: 90px;
 }
 
 .dwkit-formadmin-header-left{
@@ -19,7 +22,8 @@
     float: left;
     margin-top: 27px;
     margin-left: 70px;
-    width: calc(100% - 500px);
+    width: calc(100% - 600px);
+    min-width: 100px;
 }
 
 .dwkit-formadmin-header-center .ui.fluid.search > .ui.icon.input{
@@ -40,6 +44,14 @@
     margin-top: 27px;
     margin-right: 10px;
 }
+
+.dwkit-formadmin-header-right .localization{
+    display: inline-block;
+}
+.dwkit-formadmin-header-right .localization .ui.selection.dropdown{
+    min-width: 150px;
+}
+
 .dwkit-formadmin-header-right .username{
     color: #475662;
     margin-left: 10px;
@@ -120,13 +132,18 @@
     background: transparent;
 }
 
+.dwkit-formadmin {
+    display: flex; 
+    align-items: stretch;
+    min-height: calc(100% - 50px);
+}
 
 /* Content */
 .dwkit-formadmin-basecontent{
     width: calc(100% - 250px);
     float: right;
     /* background-color: #F9F9F9; */
-    height: 300px;
+    /* height: 300px; */
     min-height: calc(100vh - 100px);
 }
 
@@ -160,6 +177,15 @@
     background: transparent;
 }
 
+.dwkit-formadmin-dataedit-attributeheader{
+    float: left;
+}
+
+.dwkit-formadmin-dataedit-attributeslider{
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
 /* Form builder */
 .segment.dwkit-formadmind-sementtop{
     color : white;
@@ -184,13 +210,13 @@
     
 }
 
-.dwkit-admin-formbuilder-container-fullscreen{
+.dwkit-admin-formbuilder-container-fullscreen {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    min-height: 950px; /*100vh*/
+    /*min-height: 950px; 100vh*/
     z-index: 1;
     background: white;
 }
@@ -272,6 +298,7 @@
 /* Controls */
 .dwkit-buttonimage{
     height: 13px;
+    cursor: pointer;
 }
 
 .dwkit-formadmin-content a{
@@ -283,12 +310,12 @@
     background: rgba(148,149,154,0.20);
 }
 
-.dwkit-formadmin-item{
-    margin-top: 30px;
+ .dwkit-formadmin-item:not(:last-child){
     border-bottom-style: solid;
     border-bottom-width: 1px;
     border-bottom-color: rgba(148,149,154,0.20);
-}
+    margin-bottom: 10px;
+} 
 
 .dwkit-formadmin-item .ui.form div.field.operationflag{
     margin-top: 15px;
@@ -429,12 +456,19 @@
     font-size: 14px;
     color: #465662;
     line-height: 28px;
-
     cursor: pointer;
 }
 
+.dwkit-formmapping-collection-row{
+    border-style: solid;
+    border-width: 0.5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
 .dwkit-formmapping-collection-row .mapdatacontrol{
-    margin-top: 22px;
+    margin-top: 23px;
+    height: 32px;
     margin-bottom: 17px;
     margin-right: 10px;
 }
@@ -467,13 +501,6 @@ Loading
 /*
  Others
 */
-.ui.form input[type=text], .ui.form input[type=number], .ui.form textarea{
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    padding-left: 2px;
-    border-radius: 0;
-}
 
 div.field > label {
     font-size: 12px!important;
@@ -488,13 +515,6 @@ div.field > label {
 
 .ui.dropdown > .text {
 	width: calc(100% - 20px)!important;
-}
-
-.ui.dropdown {
-	width: 100%!important;
-	padding-top: 8px!important;
-	border-bottom: 1px solid rgba(34,36,38,.15)!important;
-    padding-bottom: 9px!important;
 }
 
 
@@ -570,3 +590,292 @@ div.field > label {
 .fullScreen {
     overflow: hidden
 } */
+
+.dwkit-admin-formheader-breadcrumb{
+    float: left;
+    margin-right: 20px;
+}
+
+.dwkit-admin-formheader-parameters{
+padding-top: 2px;
+}
+
+.dwkit-admin-formbuilder-container-fullscreen .dwkit-formbuilder-content,
+.dwkit-admin-formbuilder-container-fullscreen .dwkit-formbuilder-toolbox {
+    overflow: auto;
+    height: calc(100vh - 60px);
+}
+
+.dwkit-formbuilder-content, .dwkit-formbuilder-toolbox {
+    overflow: auto;
+    height: calc(100vh - 175px);
+}
+
+.dwkit-admin-resourcelist i.icon{
+    float: left;
+}
+
+.dwkit-admin-resourcelist{
+    float: left; 
+    width: 230px;
+    overflow: auto;
+    margin-right: 5px;
+    border-right-style: inset;
+}
+
+.dwkit-admin-resourcelist .list .item .content{
+    margin-left: 10px;
+}
+
+.dwkit-admin-resourceupload{
+    width: calc(100% - 300px);
+    text-align: center;
+    padding: 5px;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 5px;
+    min-height: 200px;
+    float: left;
+}
+
+.dwkit-admin-resourceupload .filepicker.dropzone.dz-clickable .dz-default.dz-message{
+    min-height: 200px;
+}
+
+.dwkit-admin-resourceimg{
+    max-width: 500px;
+    float: left;
+}
+
+.dwkit-dashboard-settings .ui.bottom.segment.tab.top {
+    padding: 0px;
+    border: none;
+}
+
+@media all and (-ms-high-contrast:none)
+{
+    .ui.modal:not(.legacy){
+        position: static;
+    }
+}
+
+/**
+ * alertifyjs 1.11.1 http://alertifyjs.com
+ * AlertifyJS is a javascript framework for developing pretty browser dialogs and notifications.
+ * Copyright 2018 Mohammad Younes <Mohammad@alertifyjs.com> (http://alertifyjs.com) 
+ * Licensed under GPL 3 <https://opensource.org/licenses/gpl-3.0>*/
+ .alertify,
+ .alertify-show,
+ .alertify-log {
+     -webkit-transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
+     -moz-transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
+     -ms-transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
+     -o-transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
+     transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275); /* easeOutBack */
+ }
+ .alertify-hide {
+     -webkit-transition: all 250ms cubic-bezier(0.600, -0.280, 0.735, 0.045);
+     -moz-transition: all 250ms cubic-bezier(0.600, -0.280, 0.735, 0.045);
+     -ms-transition: all 250ms cubic-bezier(0.600, -0.280, 0.735, 0.045);
+     -o-transition: all 250ms cubic-bezier(0.600, -0.280, 0.735, 0.045);
+     transition: all 250ms cubic-bezier(0.600, -0.280, 0.735, 0.045); /* easeInBack */
+ }
+ .alertify-log-hide {
+     -webkit-transition: all 500ms cubic-bezier(0.600, -0.280, 0.735, 0.045);
+     -moz-transition: all 500ms cubic-bezier(0.600, -0.280, 0.735, 0.045);
+     -ms-transition: all 500ms cubic-bezier(0.600, -0.280, 0.735, 0.045);
+     -o-transition: all 500ms cubic-bezier(0.600, -0.280, 0.735, 0.045);
+     transition: all 500ms cubic-bezier(0.600, -0.280, 0.735, 0.045); /* easeInBack */
+ }
+ .alertify-cover {
+     position: fixed; z-index: 99999;
+     top: 0; right: 0; bottom: 0; left: 0;
+     background-color:white;
+     filter:alpha(opacity=0);
+     opacity:0;
+ }
+ .alertify-cover-hidden {
+     display: none;
+ }
+ .alertify {
+     position: fixed; z-index: 99999;
+     top: 50px; left: 50%;
+     width: 550px;
+     margin-left: -275px;
+     opacity: 1;
+ }
+ .alertify-hidden {
+     -webkit-transform: translate(0,-150px);
+     -moz-transform: translate(0,-150px);
+     -ms-transform: translate(0,-150px);
+     -o-transform: translate(0,-150px);
+     transform: translate(0,-150px);
+     opacity: 0;
+     display: none;
+ }
+ /* overwrite display: none; for everything except IE6-8 */
+ :root *> .alertify-hidden {
+     display: block;
+     visibility: hidden;
+ }
+ .alertify-logs {
+     position: fixed;
+     z-index: 5000;
+     bottom: 10px;
+     right: 10px;
+     width: 300px;
+ }
+ .alertify-logs-hidden {
+     display: none;
+ }
+ .alertify-log {
+     display: block;
+     margin-top: 10px;
+     position: relative;
+     right: -300px;
+     opacity: 0;
+ }
+ .alertify-log-show {
+     right: 0;
+     opacity: 1;
+ }
+ .alertify-log-hide {
+     -webkit-transform: translate(300px, 0);
+     -moz-transform: translate(300px, 0);
+     -ms-transform: translate(300px, 0);
+     -o-transform: translate(300px, 0);
+     transform: translate(300px, 0);
+     opacity: 0;
+ }
+ .alertify-dialog {
+     padding: 25px;
+ }
+ .alertify-resetFocus {
+     border: 0;
+     clip: rect(0 0 0 0);
+     height: 1px;
+     margin: -1px;
+     overflow: hidden;
+     padding: 0;
+     position: absolute;
+     width: 1px;
+ }
+ .alertify-inner {
+     text-align: center;
+ }
+ .alertify-text {
+     margin-bottom: 15px;
+     width: 100%;
+     -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+     box-sizing: border-box;
+     font-size: 100%;
+ }
+ .alertify-buttons {
+ }
+ .alertify-button,
+ .alertify-button:hover,
+ .alertify-button:active,
+ .alertify-button:visited {
+     background: none;
+     text-decoration: none;
+     border: none;
+     /* line-height and font-size for input button */
+     line-height: 1.5;
+     font-size: 100%;
+     display: inline-block;
+     cursor: pointer;
+     margin-left: 5px;
+ }
+ 
+ @media only screen and (max-width: 680px) {
+     .alertify,
+     .alertify-logs {
+         width: 90%;
+         -webkit-box-sizing: border-box;
+         -moz-box-sizing: border-box;
+         box-sizing: border-box;
+     }
+     .alertify {
+         left: 5%;
+         margin: 0;
+     }
+ }
+ 
+ 
+ .alertify,
+ .alertify-log {
+     font-family: sans-serif;
+ }
+ .alertify {
+     background: #FFF;
+     border: 10px solid #333; /* browsers that don't support rgba */
+     border: 10px solid rgba(0,0,0,.7);
+     border-radius: 8px;
+     box-shadow: 0 3px 3px rgba(0,0,0,.3);
+     -webkit-background-clip: padding;     /* Safari 4? Chrome 6? */
+     -moz-background-clip: padding;     /* Firefox 3.6 */
+     background-clip: padding-box; /* Firefox 4, Safari 5, Opera 10, IE 9 */
+ }
+ .alertify-text {
+     border: 1px solid #CCC;
+     padding: 10px;
+     border-radius: 4px;
+ }
+ .alertify-button {
+     border-radius: 4px;
+     color: #FFF;
+     font-weight: bold;
+     padding: 6px 15px;
+     text-decoration: none;
+     text-shadow: 1px 1px 0 rgba(0,0,0,.5);
+     box-shadow: inset 0 1px 0 0 rgba(255,255,255,.5);
+     background-image: -webkit-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+     background-image:    -moz-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+     background-image:     -ms-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+     background-image:      -o-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+     background-image:         linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
+ }
+ .alertify-button:hover,
+ .alertify-button:focus {
+     outline: none;
+     background-image: -webkit-linear-gradient(top, rgba(0,0,0,.1), rgba(0,0,0,0));
+     background-image:    -moz-linear-gradient(top, rgba(0,0,0,.1), rgba(0,0,0,0));
+     background-image:     -ms-linear-gradient(top, rgba(0,0,0,.1), rgba(0,0,0,0));
+     background-image:      -o-linear-gradient(top, rgba(0,0,0,.1), rgba(0,0,0,0));
+     background-image:         linear-gradient(top, rgba(0,0,0,.1), rgba(0,0,0,0));
+ }
+ .alertify-button:focus {
+     box-shadow: 0 0 15px #2B72D5;
+ }
+ .alertify-button:active {
+     position: relative;
+     box-shadow: inset 0 2px 4px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.05);
+ }
+ .alertify-button-cancel,
+ .alertify-button-cancel:hover,
+ .alertify-button-cancel:focus {
+     background-color: #FE1A00;
+     border: 1px solid #D83526;
+ }
+ .alertify-button-ok,
+ .alertify-button-ok:hover,
+ .alertify-button-ok:focus {
+     background-color: #5CB811;
+     border: 1px solid #3B7808;
+ }
+ 
+ .alertify-log {
+     background: #1F1F1F;
+     background: rgba(0,0,0,.9);
+     padding: 15px;
+     border-radius: 4px;
+     color: #FFF;
+     text-shadow: -1px -1px 0 rgba(0,0,0,.5);
+ }
+ .alertify-log-error {
+     background: #F24D00;/*#FE1A00;*/
+     background: #F24D00;/*rgba(254,26,0,.9);*/
+ }
+ .alertify-log-success {
+     background: #1362E2;/*#5CB811;*/
+     background: #1362E2;/*rgba(92,184,17,.9);*/

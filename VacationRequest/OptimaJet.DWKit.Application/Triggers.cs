@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,11 +13,11 @@ namespace OptimaJet.DWKit.Application
     {
         #region IServerActionsProvider implementation
 
-        private Dictionary<string, Func<EntityModel, List<dynamic>, dynamic, (string Message, bool IsCancelled)>> _triggers
-            = new Dictionary<string, Func<EntityModel, List<dynamic>, dynamic, (string Message, bool IsCancelled)>>();
+        private Dictionary<string, Func<EntityModel, List<dynamic>, TriggerExecutionContext, dynamic,  TriggerResult>> _triggers
+            = new Dictionary<string, Func<EntityModel, List<dynamic>,TriggerExecutionContext, dynamic,TriggerResult>>();
 
-        private Dictionary<string, Func<EntityModel, List<dynamic>, dynamic, Task<(string Message, bool IsCancelled)>>> _triggersAsync
-            = new Dictionary<string, Func<EntityModel, List<dynamic>, dynamic, Task<(string Message, bool IsCancelled)>>>();
+        private Dictionary<string, Func<EntityModel, List<dynamic>,TriggerExecutionContext, dynamic, Task<TriggerResult>>> _triggersAsync
+            = new Dictionary<string, Func<EntityModel, List<dynamic>,TriggerExecutionContext, dynamic, Task<TriggerResult>>>();
 
         public List<string> GetFilterNames()
         {
@@ -59,17 +59,17 @@ namespace OptimaJet.DWKit.Application
             return _triggersAsync.ContainsKey(name) || _triggers.ContainsKey(name);
         }
 
-        public (string Message, bool IsCancelled) ExecuteTrigger(string name, EntityModel model, List<dynamic> entities, dynamic options)
+        public TriggerResult ExecuteTrigger(string name, EntityModel model, List<dynamic> entities,TriggerExecutionContext context, dynamic options)
         {
             if (_triggers.ContainsKey(name))
-                return _triggers[name](model, entities, options);
+                return _triggers[name](model, entities,context, options);
             throw new System.NotImplementedException();
         }
 
-        public Task<(string Message, bool IsCancelled)> ExecuteTriggerAsync(string name, EntityModel model, List<dynamic> entities, dynamic options)
+        public Task<TriggerResult> ExecuteTriggerAsync(string name, EntityModel model, List<dynamic> entities, TriggerExecutionContext context, dynamic options)
         {
             if (_triggersAsync.ContainsKey(name))
-                return _triggersAsync[name](model, entities, options);
+                return _triggersAsync[name](model, entities, context, options);
             throw new System.NotImplementedException();
         }
 
@@ -93,7 +93,9 @@ namespace OptimaJet.DWKit.Application
             throw new System.NotImplementedException();
         }
 
+#pragma warning disable 1998
         public async Task<dynamic> ExecuteActionAsync(string name, dynamic request)
+#pragma warning restore 1998
         {
             throw new System.NotImplementedException();
         }
@@ -105,7 +107,7 @@ namespace OptimaJet.DWKit.Application
             _triggersAsync.Add("initDocument", InitDocument);
         }
 
-        public async Task<(string Message, bool IsCancelled)> InitDocument(EntityModel model, List<dynamic> entities, dynamic options)
+        public async Task<TriggerResult> InitDocument(EntityModel model, List<dynamic> entities, TriggerExecutionContext context, dynamic options)
         {
             var user = DWKitRuntime.Security.CurrentUser;
             var schemes = DWKitRuntime.Metadata.GetWorkflowByForm(model.Name);
@@ -117,12 +119,12 @@ namespace OptimaJet.DWKit.Application
                         new WorkflowState(){ Name = "", SchemeCode = "", VisibleName = ""} :
                         await WorkflowInit.Runtime.GetInitialStateAsync(schemes[0]);
                     entity.AuthorId = user.GetOperationUserId();
-                    entity.author = user.GetOperationUserName();
+                    entity.AuthorId_Name = user.GetOperationUserName();
                     entity.State = initialState.Name;
-                    entity.stateName = initialState.VisibleName;
+                    entity.StateName = initialState.VisibleName;
                 }
             }
-           return (null,false);
+            return TriggerResult.Success();
         }
 
     }

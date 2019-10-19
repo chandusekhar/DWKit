@@ -14,7 +14,7 @@ Hence, we made DWKit’s source code available to our customers so that they can
 <li>User Interface on React (JSX)</li>
 <li>Role-based access control</l>
 <li>Admin panel</l>
-<li>Support MSSQL & PosgreSQL databases</li>
+<li>Support MSSQL/PosgreSQL/Oracle databases</li>
 <li>Works fine on Windows/Linux/MacOSX</li>
 </ul>
 
@@ -56,7 +56,7 @@ Hence, we made DWKit’s source code available to our customers so that they can
 <b>Documentation</b> - <a href="https://dwkit.com/documentation/">https://dwkit.com/documentation/</a><br/><br/>
 <b>Demo</b> - <a href="https://dwkit.com/demo/">https://dwkit.com/demo/</a><br/>
 <b>Admin panel</b> - <a href="http://demo.dwkit.com/admin">http://demo.dwkit.com/admin</a><br/>
-<b>Form Builder</b> - <a href="http://builder.dwkit.com/">http://builder.dwkit.com/</a><br/>
+<b>Form Builder</b> - <a href="http://demo.dwkit.com/admin?apanel=forms&aid=DocumentEdit">http://demo.dwkit.com/admin?apanel=forms&aid=DocumentEdit</a><br/>
 <b>Workflow Designer</b> - <a href="http://demo.dwkit.com/admin?apanel=workflow&aid=VacationRequest">http://demo.dwkit.com/admin?apanel=workflow&aid=VacationRequest</a><br/><br/>
 
 

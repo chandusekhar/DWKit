@@ -61,12 +61,14 @@ namespace OptimaJet.DWKit.Application
             return false;
         }
 
-        public (string Message, bool IsCancelled) ExecuteTrigger(string name, EntityModel model, List<dynamic> entities, dynamic options)
+        public TriggerResult ExecuteTrigger(string name, EntityModel model, List<dynamic> entities, TriggerExecutionContext context, dynamic options)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task<(string Message, bool IsCancelled)> ExecuteTriggerAsync(string name, EntityModel model, List<dynamic> entities, dynamic options)
+#pragma warning disable 1998
+        public async Task<TriggerResult> ExecuteTriggerAsync(string name, EntityModel model, List<dynamic> entities, TriggerExecutionContext context, dynamic options)
+#pragma warning restore 1998
         {
             throw new System.NotImplementedException();
         }
@@ -91,7 +93,9 @@ namespace OptimaJet.DWKit.Application
             throw new System.NotImplementedException();
         }
 
+#pragma warning disable 1998
         public async Task<dynamic> ExecuteActionAsync(string name, dynamic request)
+#pragma warning restore 1998
         {
             throw new System.NotImplementedException();
         }
@@ -109,7 +113,7 @@ namespace OptimaJet.DWKit.Application
             var userId = DWKitRuntime.Security.CurrentUser.ImpersonatedUserId.HasValue ? DWKitRuntime.Security.CurrentUser.ImpersonatedUserId.Value :
                 DWKitRuntime.Security.CurrentUser.Id;
             var inboxModel = await MetadataToModelConverter.GetEntityModelByModelAsync("WorkflowInbox");
-            var currentUserInbox = (await inboxModel.GetAsync(Filter.And.Equal(userId, "IdentityId"))).Select(e => (Guid) (e as dynamic).ProcessId).ToList();
+            var currentUserInbox = (await inboxModel.GetAsync(Filter.And.Equal(userId.ToString(), "IdentityId"))).Select(e => (Guid) (e as dynamic).ProcessId).ToList();
             return Filter.And.In(currentUserInbox, "Id");
         }
 

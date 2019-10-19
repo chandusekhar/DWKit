@@ -1,7 +1,7 @@
 /*
 Company: OptimaJet
 Project: DWKIT Provider for PostgreSQL
-Version: 2
+Version: 2.8
 File: DWKitScript.sql
 */
 
@@ -23,9 +23,13 @@ BEGIN
 	IF NOT EXISTS(SELECT 1 FROM "dwAppSettings" WHERE "Name" = N'ApplicationDesc') THEN
 		INSERT INTO "dwAppSettings"("Name", "Value", "GroupName", "ParamName", "Order", "EditorType") VALUES (N'ApplicationDesc', N'', N'Application settings', N'Description', 1, 0);
 	END IF;
-	
+
 	IF NOT EXISTS(SELECT 1 FROM "dwAppSettings" WHERE "Name" = N'ApplicationName') THEN
 		INSERT INTO "dwAppSettings"("Name", "Value", "GroupName", "ParamName", "Order", "EditorType") VALUES (N'ApplicationName', N'DWKit', N'Application settings', N'Name', 0, 0);
+	END IF;
+
+	IF NOT EXISTS(SELECT 1 FROM "dwAppSettings" WHERE "Name" = N'IntegrationApiKey') THEN
+		INSERT INTO "dwAppSettings" ("Name","GroupName","ParamName","Value","Order","EditorType","IsHidden")VALUES (N'IntegrationApiKey',N'Application settings',N'Api key','',2,0,false );
 	END IF;
 END $AppSettingsValues$;
 
@@ -33,13 +37,15 @@ END $AppSettingsValues$;
 CREATE TABLE IF NOT EXISTS "dwUploadedFiles"(
 	"Id" uuid NOT NULL PRIMARY KEY,
 	"Data" bytea NOT NULL,
+	"AttachmentLength" bigint NOT null,
 	"Used" boolean NOT NULL  DEFAULT 0::boolean,
-	"ObjectId" uuid NOT NULL,
 	"Name" varchar(1000) NOT NULL,
-	"TableName" varchar(255) NOT NULL,
+	"ContentType" varchar(255) NOT NULL,
 	"CreatedBy" varchar(1024) NULL,
 	"CreatedDate" timestamp NULL,
-	"AttachmentLength" bigint NOT NULL
+	"UpdatedBy" varchar(1024) NULL,
+	"UpdatedDate" timestamp NULL,
+	"Properties" text NULL
 );
 
 --SecurityPermission---------------------------------------------------------------
@@ -76,7 +82,7 @@ CREATE TABLE IF NOT EXISTS "dwSecurityRoleToSecurityPermission"(
 	"SecurityRoleId" uuid NOT NULL REFERENCES "dwSecurityRole",
 	"SecurityPermissionId" uuid NOT NULL REFERENCES "dwSecurityPermission" ON DELETE CASCADE,
 	"AccessType" smallint NOT NULL DEFAULT (0)
-); 
+);
 
 
 CREATE TABLE IF NOT EXISTS "dwSecurityUser"(
@@ -90,15 +96,16 @@ CREATE TABLE IF NOT EXISTS "dwSecurityUser"(
 	"DecimalSeparator" char(1) NULL,
 	"PageSize" integer NULL,
 	"StartPage" varchar(256) NULL,
-	"IsRTL" boolean NULL DEFAULT 0::boolean
-); 
+	"IsRTL" boolean NOT NULL DEFAULT 0::boolean,
+	"Theme" varchar(256) NULL
+);
 
 CREATE TABLE IF NOT EXISTS "dwSecurityUserState"(
 	"Id" uuid NOT NULL PRIMARY KEY,
 	"SecurityUserId" uuid NOT NULL REFERENCES "dwSecurityUser" ON DELETE CASCADE,
 	"Key" varchar(256) NOT NULL,
 	"Value" text NOT NULL
-); 
+);
 
 CREATE TABLE IF NOT EXISTS "dwSecurityCredential"(
 	"Id" uuid NOT NULL PRIMARY KEY,
@@ -106,8 +113,9 @@ CREATE TABLE IF NOT EXISTS "dwSecurityCredential"(
 	"PasswordSalt" varchar(128) NULL,
 	"SecurityUserId" uuid NOT NULL REFERENCES "dwSecurityUser" ON DELETE CASCADE,
 	"Login" varchar(256) NOT NULL,
-	"AuthenticationType" smallint NOT NULL
-); 
+	"AuthenticationType" smallint NOT NULL,
+    "ExternalProviderName" varchar(128) NULL
+);
 
 CREATE TABLE IF NOT EXISTS "dwSecurityUserImpersonation"(
 	"Id" uuid NOT NULL PRIMARY KEY,
@@ -115,34 +123,34 @@ CREATE TABLE IF NOT EXISTS "dwSecurityUserImpersonation"(
 	"ImpSecurityUserId" uuid NOT NULL REFERENCES "dwSecurityUser",
 	"DateFrom" timestamp NOT NULL,
 	"DateTo" timestamp NOT NULL
-); 
+);
 
 CREATE TABLE IF NOT EXISTS "dwSecurityUserToSecurityRole"(
 	"Id" uuid NOT NULL PRIMARY KEY,
-	"SecurityRoleId" uuid NOT NULL REFERENCES "dwSecurityRole",
-	"SecurityUserId" uuid NOT NULL REFERENCES "dwSecurityUser"
-); 
+	"SecurityRoleId" uuid NOT NULL REFERENCES "dwSecurityRole" ON DELETE CASCADE,
+	"SecurityUserId" uuid NOT NULL REFERENCES "dwSecurityUser" ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS "dwSecurityGroupToSecurityRole"(
 	"Id" uuid NOT NULL PRIMARY KEY,
-	"SecurityRoleId" uuid NOT NULL REFERENCES "dwSecurityRole",
-	"SecurityGroupId" uuid NOT NULL REFERENCES "dwSecurityGroup"
-); 
+	"SecurityRoleId" uuid NOT NULL REFERENCES "dwSecurityRole" ON DELETE CASCADE,
+	"SecurityGroupId" uuid NOT NULL REFERENCES "dwSecurityGroup" ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS "dwSecurityGroupToSecurityUser"(
 	"Id" uuid NOT NULL PRIMARY KEY,
-	"SecurityUserId" uuid NOT NULL REFERENCES "dwSecurityUser",
-	"SecurityGroupId" uuid NOT NULL REFERENCES "dwSecurityGroup"
-); 
+	"SecurityUserId" uuid NOT NULL REFERENCES "dwSecurityUser" ON DELETE CASCADE,
+	"SecurityGroupId" uuid NOT NULL REFERENCES "dwSecurityGroup" ON DELETE CASCADE
+);
 
 
 DO $SecurityValues$
 BEGIN
 	IF NOT EXISTS (SELECT * FROM "dwSecurityCredential") THEN
 		INSERT INTO "dwSecurityUser"("Id","Name","Email","IsLocked") VALUES ('540E514C-911F-4A03-AC90-C450C28838C5','admin', '', 0::boolean);
-		INSERT INTO "dwSecurityCredential"("Id","PasswordHash","PasswordSalt","SecurityUserId","Login","AuthenticationType") 
+		INSERT INTO "dwSecurityCredential"("Id","PasswordHash","PasswordSalt","SecurityUserId","Login","AuthenticationType")
 		VALUES('C0819C1D-C3BA-4EA7-ADA1-DF2D3D24C62F','VatmT7uZ8YiKAbBNrCcm2J7iW5Q=','/9xAN64KIM7tQ4qdAIgAwA==',	'540E514C-911F-4A03-AC90-C450C28838C5',	'admin',	0);
-		
+
 		INSERT INTO "dwSecurityPermissionGroup"("Id","Name","Code") VALUES ('94B616A1-62B5-41AB-AA10-46856158C55E', 'Common', 'Common');
 		INSERT INTO "dwSecurityPermission"("Id","Code","Name","GroupId") VALUES ('952DC428-693D-4E83-A809-ABB6AFF7CA95', 'AccessToAdminPanel', 'Access to admin panel', '94B616A1-62B5-41AB-AA10-46856158C55E');
 		INSERT INTO "dwSecurityRole"("Id","Code","Name","Comment","DomainGroup") VALUES( '1B7F60C8-D860-4510-8E71-5469FC1814D3', 'Admins', 'Admins', '', '');
@@ -154,21 +162,21 @@ END $SecurityValues$;
 
 
 CREATE OR REPLACE VIEW "dwV_Security_UserRole" as
-SELECT 
-	"SecurityUserId" as "UserId", 
-	"SecurityRoleId" as "RoleId" 
+SELECT
+	"SecurityUserId" as "UserId",
+	"SecurityRoleId" as "RoleId"
 FROM "dwSecurityUserToSecurityRole"
 
 UNION
 
 SELECT DISTINCT
-	"dwSecurityGroupToSecurityUser"."SecurityUserId" as "UserId", 
-	"dwSecurityGroupToSecurityRole"."SecurityRoleId" as "RoleId" 
+	"dwSecurityGroupToSecurityUser"."SecurityUserId" as "UserId",
+	"dwSecurityGroupToSecurityRole"."SecurityRoleId" as "RoleId"
 FROM "dwSecurityGroupToSecurityRole"
 INNER JOIN "dwSecurityGroupToSecurityUser" ON "dwSecurityGroupToSecurityUser"."SecurityGroupId" = "dwSecurityGroupToSecurityRole"."SecurityGroupId";
 
 
-CREATE OR REPLACE VIEW "dwV_Security_CheckPermissionUser" 
+CREATE OR REPLACE VIEW "dwV_Security_CheckPermissionUser"
 	AS
 	SELECT "dwV_Security_UserRole"."UserId",
 		sp."Id" AS "PermissionId",
@@ -183,10 +191,10 @@ CREATE OR REPLACE VIEW "dwV_Security_CheckPermissionUser"
 	     JOIN "dwV_Security_UserRole" ON "dwV_Security_UserRole"."RoleId" = srtosp."SecurityRoleId"
 	   WHERE srtosp."AccessType" <> 0
 	   GROUP BY "dwV_Security_UserRole"."UserId", sp."Id",spg."Code", spg."Name", sp."Code", sp."Name";
-	  
+
 CREATE OR REPLACE VIEW "dwV_Security_CheckPermissionGroup"
 	AS
-	SELECT 
+	SELECT
 	sgtosr."SecurityGroupId" as "SecurityGroupId",
 	sp."Id" as "PermissionId",
 	spg."Code" as "PermissionGroupCode",
@@ -194,7 +202,7 @@ CREATE OR REPLACE VIEW "dwV_Security_CheckPermissionGroup"
 	sp."Code" as "PermissionCode",
 	sp."Name" as "PermissionName",
     MAX(srtosp."AccessType") as "AccessType"
-	FROM "dwSecurityPermission" sp 
+	FROM "dwSecurityPermission" sp
 	INNER JOIN "dwSecurityPermissionGroup" spg on sp."GroupId" = spg."Id"
 	INNER JOIN "dwSecurityRoleToSecurityPermission" srtosp on srtosp."SecurityPermissionId" = sp."Id"
 	INNER JOIN "dwSecurityGroupToSecurityRole" sgtosr on sgtosr."SecurityRoleId" = srtosp."SecurityRoleId"
